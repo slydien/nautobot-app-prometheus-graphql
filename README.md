@@ -1,14 +1,11 @@
 # Nautobot App Prometheus Graphql
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/slydien/nautobot-app-prometheus-graphql/develop/docs/images/icon-nautobot-app-prometheus-graphql.png" class="logo" height="200px">
-  <br>
   <a href="https://github.com/slydien/nautobot-app-prometheus-graphql/actions"><img src="https://github.com/slydien/nautobot-app-prometheus-graphql/actions/workflows/ci.yml/badge.svg?branch=main"></a>
-  <a href="https://docs.nautobot.com/projects/nautobot-app-prometheus-graphql/en/latest/"><img src="https://readthedocs.org/projects/nautobot-app-prometheus-graphql/badge/"></a>
   <a href="https://pypi.org/project/nautobot-app-prometheus-graphql/"><img src="https://img.shields.io/pypi/v/nautobot-app-prometheus-graphql"></a>
   <a href="https://pypi.org/project/nautobot-app-prometheus-graphql/"><img src="https://img.shields.io/pypi/dm/nautobot-app-prometheus-graphql"></a>
   <br>
-  An <a href="https://networktocode.com/nautobot-apps/">App</a> for <a href="https://nautobot.com/">Nautobot</a>.
+  A Prometheus metrics app for <a href="https://nautobot.com/">Nautobot</a>.
 </p>
 
 ## Overview
