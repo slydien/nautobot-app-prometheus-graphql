@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nautobot-app-graphql-observability"
-version = "1.0.0"
+version = "1.0.1"
 description = "Nautobot App GraphQL Observability"
 authors = ["Lydien SANDANASAMY <dev@slydien.com>"]
 license = "Apache-2.0"
