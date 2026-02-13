@@ -11,3 +11,4 @@ rules:
 ignore: |
   .venv/
   compose.yaml
+  nautobot_app_graphql_observability/static/

@@ -4,6 +4,8 @@ import json
 import logging
 import time
 
+from graphql import GraphQLResolveInfo
+
 from nautobot_app_graphql_observability.middleware import PrometheusMiddleware, _get_app_settings
 
 LOGGER_NAME = "nautobot_app_graphql_observability.graphql_query_log"
@@ -57,7 +59,7 @@ class GraphQLQueryLoggingMiddleware:  # pylint: disable=too-few-public-methods
         }
     """
 
-    def resolve(self, next: callable, root: object, info: "GraphQLResolveInfo", **kwargs: object) -> object:  # pylint: disable=redefined-builtin
+    def resolve(self, next: callable, root: object, info: GraphQLResolveInfo, **kwargs: object) -> object:  # pylint: disable=redefined-builtin
         """Intercept root-level resolutions and log query details.
 
         Args:

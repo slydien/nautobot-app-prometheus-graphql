@@ -137,6 +137,13 @@ convention = "google"
     "D",
     "S"
 ]
+"development/*" = [
+    "D",
+]
+"scripts/*" = [
+    "D",
+    "S",
+]
 
 [tool.coverage.run]
 disable_warnings = ["already-imported"]
