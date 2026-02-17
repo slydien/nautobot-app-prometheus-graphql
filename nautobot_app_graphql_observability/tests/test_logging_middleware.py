@@ -17,7 +17,7 @@ _LOGGING_ENABLED = {
 }
 
 
-def _make_info(query_string="{ devices { id } }", authenticated=True, username="testuser"):
+def _make_info(query_string="{ devices { id } }", authenticated=True, username="testuser", variables=None):
     """Build a mock GraphQLResolveInfo with a real parsed AST."""
     doc = parse(query_string)
     op = doc.definitions[0]
@@ -26,9 +26,9 @@ def _make_info(query_string="{ devices { id } }", authenticated=True, username="
     info = MagicMock()
     info.operation = op
     info.fragments = fragments
+    info.variable_values = variables or {}
     info.context.user.is_authenticated = authenticated
     info.context.user.username = username
-    info.context.data = {"query": query_string}
     return info
 
 
@@ -137,8 +137,7 @@ class GraphQLQueryLoggingMiddlewareTest(TestCase):
         return_value={**_LOGGING_ENABLED, "log_query_variables": True},
     )
     def test_log_variables_enabled(self, _mock_settings):
-        info = _make_info("{ devices { id } }")
-        info.context.data = {"query": "{ devices { id } }", "variables": {"name": "test"}}
+        info = _make_info("{ devices { id } }", variables={"name": "test"})
 
         with self.assertLogs(LOGGER_NAME, level="INFO") as logs:
             self.middleware.resolve(self.next_func, None, info)

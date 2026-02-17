@@ -137,38 +137,35 @@ class GraphQLQueryLoggingMiddleware:  # pylint: disable=too-few-public-methods
 
 
 def _extract_query_body(info):
-    """Extract the GraphQL query text from the request body.
+    """Extract the GraphQL query text from the parsed AST.
 
-    Uses ``request.data`` (already parsed by DRF) instead of ``request.body``
-    to avoid ``RawPostDataException`` when the stream has been consumed.
+    Reads ``info.operation.loc.source.body`` which is always available after
+    graphql-core has parsed the query, regardless of the request content type
+    (``application/json``, ``application/graphql``, etc.).
 
     Returns:
         str or None: The query string, or None if not available.
     """
-    request = info.context
     try:
-        data = getattr(request, "data", None) or {}
-        query = data.get("query", "")
-        if query:
-            return query.replace("\n", " ").strip()
+        source_body = info.operation.loc.source.body
+        if source_body:
+            return source_body.replace("\n", " ").strip()
     except Exception:  # noqa: S110  # pylint: disable=broad-except
         pass
     return None
 
 
 def _extract_variables(info):
-    """Extract GraphQL query variables from the request body.
+    """Extract GraphQL query variables from the resolved execution context.
 
-    Uses ``request.data`` (already parsed by DRF) instead of ``request.body``
-    to avoid ``RawPostDataException`` when the stream has been consumed.
+    Reads ``info.variable_values`` which is populated by graphql-core from
+    the parsed request regardless of the content type.
 
     Returns:
         str or None: JSON-encoded variables, or None if not available.
     """
-    request = info.context
     try:
-        data = getattr(request, "data", None) or {}
-        variables = data.get("variables")
+        variables = info.variable_values
         if variables:
             return json.dumps(variables, separators=(",", ":"))
     except Exception:  # noqa: S110  # pylint: disable=broad-except
