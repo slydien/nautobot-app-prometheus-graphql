@@ -2,7 +2,6 @@
 
 import json
 import logging
-import time
 
 from graphql import GraphQLResolveInfo
 

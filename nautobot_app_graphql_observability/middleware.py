@@ -10,7 +10,6 @@ from nautobot_app_graphql_observability.metrics import (
     graphql_field_resolution_duration_seconds,
     graphql_query_complexity,
     graphql_query_depth,
-    graphql_request_duration_seconds,
     graphql_requests_by_user_total,
     graphql_requests_total,
 )
@@ -88,10 +87,14 @@ class PrometheusMiddleware:  # pylint: disable=too-few-public-methods
         # the Django middleware can record the full-request duration.
         request = info.context
         if not hasattr(request, _REQUEST_ATTR):
-            setattr(request, _REQUEST_ATTR, {
-                "operation_type": operation_type,
-                "operation_name": operation_name,
-            })
+            setattr(
+                request,
+                _REQUEST_ATTR,
+                {
+                    "operation_type": operation_type,
+                    "operation_name": operation_name,
+                },
+            )
 
         try:
             result = next(root, info, **kwargs)
@@ -174,5 +177,3 @@ class PrometheusMiddleware:  # pylint: disable=too-few-public-methods
                 if isinstance(selection, FieldNode):
                     root_fields.append(selection.name.value)
         return ",".join(sorted(root_fields)) if root_fields else "anonymous"
-
-

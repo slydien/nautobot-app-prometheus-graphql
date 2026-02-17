@@ -7,8 +7,8 @@ from django.test import TestCase
 from graphql import parse
 
 from nautobot_app_graphql_observability.logging_middleware import (
-    GraphQLQueryLoggingMiddleware,
     _REQUEST_ATTR,
+    GraphQLQueryLoggingMiddleware,
     _emit_log,
 )
 

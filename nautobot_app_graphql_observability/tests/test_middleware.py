@@ -14,8 +14,8 @@ from nautobot_app_graphql_observability.metrics import (
     graphql_requests_total,
 )
 from nautobot_app_graphql_observability.middleware import (
-    PrometheusMiddleware,
     _REQUEST_ATTR,
+    PrometheusMiddleware,
 )
 
 

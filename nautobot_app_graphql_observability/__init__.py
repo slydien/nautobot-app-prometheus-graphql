@@ -78,6 +78,8 @@ class NautobotAppGraphqlObservabilityConfig(NautobotAppConfig):
 
             from nautobot_app_graphql_observability.logging_middleware import (  # pylint: disable=import-outside-toplevel
                 _REQUEST_ATTR as _LOGGING_ATTR,
+            )
+            from nautobot_app_graphql_observability.logging_middleware import (
                 _emit_log,
             )
             from nautobot_app_graphql_observability.metrics import (  # pylint: disable=import-outside-toplevel
