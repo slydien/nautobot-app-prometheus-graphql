@@ -46,10 +46,25 @@ class NautobotAppGraphqlObservabilityConfig(NautobotAppConfig):
 
     @staticmethod
     def _patch_graphql_view():
-        """Monkey-patch GraphQLDRFAPIView to load middleware and measure full request duration."""
+        """Monkey-patch GraphQL views to load middleware and measure full request duration.
+
+        Patches two views:
+
+        1. ``GraphQLDRFAPIView`` – the DRF-based REST API endpoint (``/api/graphql/``).
+           Its ``init_graphql()`` does not load ``GRAPHENE["MIDDLEWARE"]`` when
+           ``self.middleware`` is ``None``, so we patch it to do so.  We also wrap
+           ``post()`` to record real request duration.
+
+        2. ``CustomGraphQLView`` – the GraphiQL UI endpoint (``/graphql/``).
+           It inherits from ``graphene_django.views.GraphQLView`` which already
+           loads middleware from settings, but its ``dispatch()`` must be wrapped
+           to record duration and emit logs.
+        """
+        import functools  # pylint: disable=import-outside-toplevel
         import time  # pylint: disable=import-outside-toplevel
 
         from nautobot.core.api.views import GraphQLDRFAPIView  # pylint: disable=import-outside-toplevel
+        from nautobot.core.views import CustomGraphQLView  # pylint: disable=import-outside-toplevel
 
         # --- Patch init_graphql to load middleware from settings ---
         original_init_graphql = GraphQLDRFAPIView.init_graphql
@@ -65,17 +80,9 @@ class NautobotAppGraphqlObservabilityConfig(NautobotAppConfig):
 
         GraphQLDRFAPIView.init_graphql = patched_init_graphql
 
-        # --- Patch post() to record real total request duration ---
-        import functools  # pylint: disable=import-outside-toplevel
-
-        original_post = GraphQLDRFAPIView.post
-
-        @functools.wraps(original_post)
-        def patched_post(view_self, request, *args, **kwargs):
-            start_time = time.monotonic()
-            response = original_post(view_self, request, *args, **kwargs)
-            duration = time.monotonic() - start_time
-
+        # --- Shared helper: record metrics and emit log after a request ---
+        def _record_observability(request, duration):
+            """Record Prometheus duration histogram and emit query log."""
             from nautobot_app_graphql_observability.logging_middleware import (  # noqa: I001  # pylint: disable=import-outside-toplevel
                 _REQUEST_ATTR as _LOGGING_ATTR,
                 _emit_log,
@@ -87,7 +94,6 @@ class NautobotAppGraphqlObservabilityConfig(NautobotAppConfig):
                 _REQUEST_ATTR as _PROM_ATTR,
             )
 
-            # Record Prometheus duration histogram
             prom_meta = getattr(request, _PROM_ATTR, None)
             if prom_meta is not None:
                 graphql_request_duration_seconds.labels(
@@ -95,14 +101,35 @@ class NautobotAppGraphqlObservabilityConfig(NautobotAppConfig):
                     operation_name=prom_meta["operation_name"],
                 ).observe(duration)
 
-            # Emit query log with real duration
             log_meta = getattr(request, _LOGGING_ATTR, None)
             if log_meta is not None:
                 _emit_log(log_meta, duration * 1000)
 
+        # --- Patch GraphQLDRFAPIView.post() (REST API: /api/graphql/) ---
+        original_post = GraphQLDRFAPIView.post
+
+        @functools.wraps(original_post)
+        def patched_post(view_self, request, *args, **kwargs):
+            start_time = time.monotonic()
+            response = original_post(view_self, request, *args, **kwargs)
+            duration = time.monotonic() - start_time
+            _record_observability(request, duration)
             return response
 
         GraphQLDRFAPIView.post = patched_post
+
+        # --- Patch CustomGraphQLView.dispatch() (GraphiQL UI: /graphql/) ---
+        original_dispatch = CustomGraphQLView.dispatch
+
+        @functools.wraps(original_dispatch)
+        def patched_dispatch(view_self, request, *args, **kwargs):
+            start_time = time.monotonic()
+            response = original_dispatch(view_self, request, *args, **kwargs)
+            duration = time.monotonic() - start_time
+            _record_observability(request, duration)
+            return response
+
+        CustomGraphQLView.dispatch = patched_dispatch
 
 
 config = NautobotAppGraphqlObservabilityConfig  # pylint:disable=invalid-name
