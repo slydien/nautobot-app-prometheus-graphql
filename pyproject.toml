@@ -1,14 +1,13 @@
 [tool.poetry]
-name = "nautobot-graphql-observability"
-version = "2.1.0"
-description = "Generic Graphene-Django middleware for GraphQL observability via Prometheus metrics and structured query logging. Works with any Django/graphene-django project and has first-class support for Nautobot."
+name = "graphene-django-observability"
+version = "1.0.0"
+description = "Graphene-Django middleware for GraphQL observability: Prometheus metrics and structured query logging."
 authors = ["Lydien SANDANASAMY <dev@slydien.com>"]
 license = "Apache-2.0"
 readme = "README.md"
 homepage = "https://github.com/slydien/nautobot-app-graphql-observability"
 repository = "https://github.com/slydien/nautobot-app-graphql-observability"
-documentation = "https://docs.nautobot.com/projects/nautobot-graphql-observability/en/latest/"
-keywords = ["django", "graphql", "graphene", "graphene-django", "prometheus", "observability", "metrics", "nautobot", "nautobot-app", "nautobot-plugin"]
+keywords = ["django", "graphql", "graphene", "graphene-django", "prometheus", "observability", "metrics", "middleware"]
 classifiers = [
     "Intended Audience :: Developers",
     "Development Status :: 5 - Production/Stable",
@@ -21,19 +20,13 @@ classifiers = [
     "Topic :: System :: Monitoring",
 ]
 packages = [
-    { include = "nautobot_graphql_observability" },
-]
-include = [
-    # Poetry by default will exclude files that are in .gitignore
-    { path = "nautobot_graphql_observability/static/nautobot_graphql_observability/docs/**/*", format = ["sdist", "wheel"] }
+    { include = "graphene_django_observability" },
 ]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.14"
 graphene-django = ">=3.0.0"
 prometheus-client = ">=0.17.0"
-# Nautobot is optional; install with: pip install nautobot-graphql-observability[nautobot]
-nautobot = { version = ">=3.0.0,<4.0.0", optional = true }
 
 [tool.poetry.group.dev.dependencies]
 coverage = "*"
@@ -42,7 +35,6 @@ invoke = "*"
 ipython = "*"
 pylint = "*"
 pylint-django = ">=2.5.4"
-pylint-nautobot = ">=0.3.1"
 ruff = "0.5.5"
 yamllint = "*"
 toml = "*"
@@ -69,13 +61,9 @@ mkdocstrings-python = "1.10.8"
 mkdocs-autorefs = "1.2.0"
 griffe = "1.1.1"
 
-[tool.poetry.extras]
-nautobot = ["nautobot"]
-all = ["nautobot"]
-
 [tool.pylint.master]
 # Include the pylint_django plugin to avoid spurious warnings about Django patterns
-load-plugins = "pylint_django, pylint_nautobot"
+load-plugins = "pylint_django"
 ignore = ".venv"
 
 [tool.pylint.basic]
@@ -86,9 +74,6 @@ no-docstring-rgx = "^(_|test_|Meta$)"
 disable = """,
     line-too-long,
     too-many-positional-arguments,
-    nb-warn-dunder-filter-field,
-    nb-no-search-function,
-    nb-no-char-filter-q,
     protected-access,
 """
 
@@ -101,7 +86,7 @@ notes = """,
 
 [tool.ruff]
 line-length = 120
-target-version = "py38"
+target-version = "py310"
 
 [tool.ruff.lint]
 select = [
@@ -133,10 +118,10 @@ ignore = [
 convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
-"nautobot_graphql_observability/migrations/*" = [
+"graphene_django_observability/migrations/*" = [
     "D",
 ]
-"nautobot_graphql_observability/tests/*" = [
+"graphene_django_observability/tests/*" = [
     "D",
     "S"
 ]
@@ -156,7 +141,7 @@ omit = [
     "*/tests/*",
 ]
 include = [
-    "nautobot_graphql_observability/*",
+    "graphene_django_observability/*",
 ]
 
 [tool.pymarkdown]
@@ -170,9 +155,9 @@ requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.towncrier]
-package = "nautobot_graphql_observability"
+package = "graphene_django_observability"
 directory = "changes"
-filename = "docs/admin/release_notes/version_2.1.md"
+filename = "docs/admin/release_notes/version_1.0.md"
 template = "development/towncrier_template.j2"
 start_string = "<!-- towncrier release notes start -->"
 issue_format = "[#{issue}](https://github.com/slydien/nautobot-app-graphql-observability/issues/{issue})"
@@ -230,4 +215,4 @@ showcontent = true
 [tool.djlint]
 ignore = "H005,H006,H008,H011,H012,H013,H014,H015,H016,H019,H020,H021,H022,H023,H025,H026,H030,H031,H037"
 profile="django"
-extend_exclude = "docs/,nautobot_graphql_observability/static/"
+extend_exclude = "docs/,graphene_django_observability/static/"
