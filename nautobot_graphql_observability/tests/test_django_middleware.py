@@ -2,7 +2,7 @@
 
 from unittest.mock import MagicMock
 
-from django.test import RequestFactory, TestCase
+from django.test import RequestFactory, TestCase, override_settings
 
 from nautobot_graphql_observability.django_middleware import (
     GraphQLObservabilityDjangoMiddleware,
@@ -109,3 +109,65 @@ class RecordObservabilityTest(TestCase):
 
         self.assertEqual(len(logs.output), 1)
         self.assertEqual(logs.records[0].duration_ms, 50.0)
+
+
+class ConfigurableGraphQLPathsTest(TestCase):
+    """Test that graphql_paths can be overridden via settings."""
+
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.get_response = MagicMock(return_value=MagicMock(status_code=200))
+
+    @override_settings(GRAPHENE_OBSERVABILITY={"graphql_paths": ["/custom/graphql/"]})
+    def test_custom_path_is_instrumented(self):
+        middleware = GraphQLObservabilityDjangoMiddleware(self.get_response)
+        request = self.factory.post("/custom/graphql/")
+        setattr(
+            request,
+            _PROM_ATTR,
+            {"operation_type": "query", "operation_name": "CustomPathTest"},
+        )
+
+        from nautobot_graphql_observability.metrics import graphql_request_duration_seconds
+
+        before = graphql_request_duration_seconds.labels(
+            operation_type="query", operation_name="CustomPathTest"
+        )._sum.get()
+
+        middleware(request)
+
+        after = graphql_request_duration_seconds.labels(
+            operation_type="query", operation_name="CustomPathTest"
+        )._sum.get()
+        self.assertGreater(after, before)
+
+    @override_settings(GRAPHENE_OBSERVABILITY={"graphql_paths": ["/custom/graphql/"]})
+    def test_default_path_is_not_instrumented_with_custom_config(self):
+        middleware = GraphQLObservabilityDjangoMiddleware(self.get_response)
+        request = self.factory.post("/graphql/")
+
+        # The default path is no longer in the configured set — should pass through
+        middleware(request)
+        self.get_response.assert_called_once_with(request)
+
+
+class MetricsViewTest(TestCase):
+    """Test the /metrics/ endpoint exposed for non-Nautobot Django projects."""
+
+    def test_metrics_view_returns_200(self):
+        from django.test import RequestFactory as RF
+
+        from nautobot_graphql_observability.views import metrics_view
+
+        request = RF().get("/graphql-observability/metrics/")
+        response = metrics_view(request)
+        self.assertEqual(response.status_code, 200)
+
+    def test_metrics_view_content_type(self):
+        from django.test import RequestFactory as RF
+
+        from nautobot_graphql_observability.views import metrics_view
+
+        request = RF().get("/graphql-observability/metrics/")
+        response = metrics_view(request)
+        self.assertIn("text/plain", response["Content-Type"])

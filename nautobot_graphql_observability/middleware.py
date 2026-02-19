@@ -24,14 +24,39 @@ _REQUEST_ATTR = "_graphql_prometheus_meta"
 
 
 def _get_app_settings():
-    """Load the app's plugin settings from Django config.
+    """Load the app's settings from Django config.
+
+    Checks settings locations in the following order:
+
+    1. ``settings.PLUGINS_CONFIG["nautobot_graphql_observability"]`` — the
+       Nautobot plugin settings pattern.  When Nautobot is installed the
+       framework already merges ``default_settings`` from
+       :class:`~nautobot_graphql_observability.NautobotAppGraphqlObservabilityConfig`
+       into this dict, so the returned value already contains all defaults.
+
+    2. ``settings.GRAPHENE_OBSERVABILITY`` — a plain ``dict`` for use in
+       non-Nautobot Django projects.
+
+    3. An empty dict — the middleware's own defaults apply via the
+       ``_DEFAULT_SETTINGS`` fallback below.
+
+    In cases 2 and 3 the function merges :data:`_DEFAULT_SETTINGS` so
+    callers always receive a complete configuration dict.
 
     Returns:
-        dict: The plugin settings, or an empty dict if not found.
+        dict: The resolved settings merged with defaults.
     """
     from django.conf import settings  # pylint: disable=import-outside-toplevel
+    from nautobot_graphql_observability import _DEFAULT_SETTINGS  # pylint: disable=import-outside-toplevel
 
-    return getattr(settings, "PLUGINS_CONFIG", {}).get("nautobot_graphql_observability", {})
+    # Nautobot pattern — already includes defaults when Nautobot is running.
+    nautobot_config = getattr(settings, "PLUGINS_CONFIG", {}).get("nautobot_graphql_observability")
+    if nautobot_config is not None:
+        return {**_DEFAULT_SETTINGS, **nautobot_config}
+
+    # Generic Django pattern.
+    django_config = getattr(settings, "GRAPHENE_OBSERVABILITY", {})
+    return {**_DEFAULT_SETTINGS, **django_config}
 
 
 class PrometheusMiddleware:  # pylint: disable=too-few-public-methods

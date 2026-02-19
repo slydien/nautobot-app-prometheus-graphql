@@ -6,13 +6,28 @@ middlewares (:class:`~nautobot_graphql_observability.middleware.PrometheusMiddle
 and :class:`~nautobot_graphql_observability.logging_middleware.GraphQLQueryLoggingMiddleware`)
 to record Prometheus histograms and emit structured log lines.
 
-Registered automatically via :attr:`NautobotAppConfig.middleware`.
+In Nautobot the middleware is registered automatically via
+:attr:`NautobotAppConfig.middleware`.  In plain Django projects add it to
+``MIDDLEWARE`` in ``settings.py``::
+
+    MIDDLEWARE = [
+        ...
+        "nautobot_graphql_observability.django_middleware.GraphQLObservabilityDjangoMiddleware",
+    ]
+
+The set of paths that trigger instrumentation defaults to
+``{"/graphql/", "/api/graphql/"}`` and can be overridden via the
+``graphql_paths`` key in the app settings (``GRAPHENE_OBSERVABILITY`` in
+plain Django, or ``PLUGINS_CONFIG["nautobot_graphql_observability"]`` in
+Nautobot).
 """
 
 import time
 
-# Paths that correspond to Nautobot's GraphQL endpoints.
-_GRAPHQL_PATHS = frozenset(("/api/graphql/", "/graphql/"))
+# Paths that correspond to GraphQL endpoints when no custom configuration is
+# provided.  The default covers both Nautobot endpoints and the conventional
+# graphene-django endpoint used in generic Django projects.
+_DEFAULT_GRAPHQL_PATHS = frozenset(("/graphql/", "/api/graphql/"))
 
 
 def _record_observability(request, duration):
@@ -56,15 +71,38 @@ class GraphQLObservabilityDjangoMiddleware:  # pylint: disable=too-few-public-me
     2. After the response is built, reads metadata stashed on the request by
        the Graphene middlewares and records a Prometheus duration histogram
        and emits a structured query log line.
+
+    The set of paths treated as GraphQL endpoints is resolved at startup from
+    the app settings (key ``graphql_paths``).  When not configured, it
+    defaults to ``{"/graphql/", "/api/graphql/"}``.
     """
 
     def __init__(self, get_response):
-        """Initialize the middleware with the downstream handler."""
+        """Initialize the middleware and resolve the GraphQL path set."""
         self.get_response = get_response
+        self._graphql_paths = self._resolve_graphql_paths()
+
+    @staticmethod
+    def _resolve_graphql_paths():
+        """Build the frozenset of paths that should be instrumented.
+
+        Reads the ``graphql_paths`` key from the app settings.  Falls back
+        to :data:`_DEFAULT_GRAPHQL_PATHS` when the key is absent or empty.
+
+        Returns:
+            frozenset[str]: The set of URL paths to instrument.
+        """
+        from nautobot_graphql_observability.middleware import _get_app_settings  # pylint: disable=import-outside-toplevel
+
+        config = _get_app_settings()
+        custom_paths = config.get("graphql_paths")
+        if custom_paths:
+            return frozenset(custom_paths)
+        return _DEFAULT_GRAPHQL_PATHS
 
     def __call__(self, request):
         """Wrap GraphQL requests with timing; pass through everything else."""
-        if request.path not in _GRAPHQL_PATHS:
+        if request.path not in self._graphql_paths:
             return self.get_response(request)
 
         start_time = time.monotonic()

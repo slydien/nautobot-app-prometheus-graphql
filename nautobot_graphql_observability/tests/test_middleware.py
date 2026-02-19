@@ -2,7 +2,7 @@
 
 from unittest.mock import MagicMock, patch
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from graphql import parse
 
 from nautobot_graphql_observability.metrics import (
@@ -290,3 +290,41 @@ class PrometheusMiddlewareAdvancedTest(TestCase):
             type_name="DeviceType", field_name="disabled_field"
         )._sum.get()
         self.assertEqual(after, before)
+
+
+class GetAppSettingsTest(TestCase):
+    """Test cases for _get_app_settings() settings resolution."""
+
+    def test_returns_defaults_when_no_settings_configured(self):
+        from nautobot_graphql_observability.middleware import _get_app_settings
+
+        config = _get_app_settings()
+        self.assertTrue(config["graphql_metrics_enabled"])
+        self.assertTrue(config["track_query_depth"])
+        self.assertTrue(config["track_query_complexity"])
+        self.assertFalse(config["track_field_resolution"])
+        self.assertTrue(config["track_per_user"])
+        self.assertFalse(config["query_logging_enabled"])
+
+    @override_settings(GRAPHENE_OBSERVABILITY={"track_query_depth": False, "track_per_user": False})
+    def test_graphene_observability_setting_overrides_defaults(self):
+        from nautobot_graphql_observability.middleware import _get_app_settings
+
+        config = _get_app_settings()
+        # Overridden values
+        self.assertFalse(config["track_query_depth"])
+        self.assertFalse(config["track_per_user"])
+        # Defaults for keys not overridden
+        self.assertTrue(config["graphql_metrics_enabled"])
+        self.assertTrue(config["track_query_complexity"])
+
+    @override_settings(
+        PLUGINS_CONFIG={"nautobot_graphql_observability": {"track_field_resolution": True}},
+    )
+    def test_plugins_config_takes_precedence_over_graphene_observability(self):
+        from nautobot_graphql_observability.middleware import _get_app_settings
+
+        # PLUGINS_CONFIG should be used even if GRAPHENE_OBSERVABILITY is also present
+        with self.settings(GRAPHENE_OBSERVABILITY={"track_field_resolution": False}):
+            config = _get_app_settings()
+        self.assertTrue(config["track_field_resolution"])

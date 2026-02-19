@@ -1,22 +1,24 @@
 [tool.poetry]
 name = "nautobot-graphql-observability"
 version = "2.1.0"
-description = "Nautobot App GraphQL Observability"
+description = "Generic Graphene-Django middleware for GraphQL observability via Prometheus metrics and structured query logging. Works with any Django/graphene-django project and has first-class support for Nautobot."
 authors = ["Lydien SANDANASAMY <dev@slydien.com>"]
 license = "Apache-2.0"
 readme = "README.md"
 homepage = "https://github.com/slydien/nautobot-app-graphql-observability"
 repository = "https://github.com/slydien/nautobot-app-graphql-observability"
 documentation = "https://docs.nautobot.com/projects/nautobot-graphql-observability/en/latest/"
-keywords = ["nautobot", "nautobot-app", "nautobot-plugin"]
+keywords = ["django", "graphql", "graphene", "graphene-django", "prometheus", "observability", "metrics", "nautobot", "nautobot-app", "nautobot-plugin"]
 classifiers = [
     "Intended Audience :: Developers",
     "Development Status :: 5 - Production/Stable",
+    "Framework :: Django",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Topic :: System :: Monitoring",
 ]
 packages = [
     { include = "nautobot_graphql_observability" },
@@ -28,9 +30,10 @@ include = [
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.14"
-# Used for local development
-nautobot = ">=3.0.0,<4.0.0"
+graphene-django = ">=3.0.0"
 prometheus-client = ">=0.17.0"
+# Nautobot is optional; install with: pip install nautobot-graphql-observability[nautobot]
+nautobot = { version = ">=3.0.0,<4.0.0", optional = true }
 
 [tool.poetry.group.dev.dependencies]
 coverage = "*"
@@ -67,8 +70,8 @@ mkdocs-autorefs = "1.2.0"
 griffe = "1.1.1"
 
 [tool.poetry.extras]
-all = [
-]
+nautobot = ["nautobot"]
+all = ["nautobot"]
 
 [tool.pylint.master]
 # Include the pylint_django plugin to avoid spurious warnings about Django patterns
