@@ -41,6 +41,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://docs.nautobot.com/projects/nautobot-graphql-observability/en/latest/admin/release_notes/version_2.1.html</loc>
+         <lastmod>2026-02-19</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://docs.nautobot.com/projects/nautobot-graphql-observability/en/latest/dev/arch_decision.html</loc>
          <lastmod>2026-02-19</lastmod>
          <changefreq>daily</changefreq>

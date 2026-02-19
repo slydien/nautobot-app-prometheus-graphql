@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nautobot-graphql-observability"
-version = "2.0.0"
+version = "2.1.0"
 description = "Nautobot App GraphQL Observability"
 authors = ["Lydien SANDANASAMY <dev@slydien.com>"]
 license = "Apache-2.0"
@@ -169,7 +169,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.towncrier]
 package = "nautobot_graphql_observability"
 directory = "changes"
-filename = "docs/admin/release_notes/version_X.Y.md"
+filename = "docs/admin/release_notes/version_2.1.md"
 template = "development/towncrier_template.j2"
 start_string = "<!-- towncrier release notes start -->"
 issue_format = "[#{issue}](https://github.com/slydien/nautobot-app-graphql-observability/issues/{issue})"
