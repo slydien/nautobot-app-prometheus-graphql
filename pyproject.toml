@@ -158,7 +158,7 @@ build-backend = "poetry.core.masonry.api"
 package = "graphene_django_observability"
 directory = "changes"
 filename = "docs/admin/release_notes/version_1.0.md"
-template = "development/towncrier_template.j2"
+template = "towncrier_template.j2"
 start_string = "<!-- towncrier release notes start -->"
 issue_format = "[#{issue}](https://github.com/slydien/nautobot-app-graphql-observability/issues/{issue})"
 

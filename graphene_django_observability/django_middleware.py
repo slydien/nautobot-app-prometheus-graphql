@@ -84,7 +84,9 @@ class GraphQLObservabilityDjangoMiddleware:  # pylint: disable=too-few-public-me
         Returns:
             frozenset[str]: The set of URL paths to instrument.
         """
-        from graphene_django_observability.middleware import _get_app_settings  # pylint: disable=import-outside-toplevel
+        from graphene_django_observability.middleware import (
+            _get_app_settings,  # pylint: disable=import-outside-toplevel
+        )
 
         config = _get_app_settings()
         custom_paths = config.get("graphql_paths")

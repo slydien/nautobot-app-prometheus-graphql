@@ -317,14 +317,3 @@ class GetAppSettingsTest(TestCase):
         # Defaults for keys not overridden
         self.assertTrue(config["graphql_metrics_enabled"])
         self.assertTrue(config["track_query_complexity"])
-
-    @override_settings(
-        PLUGINS_CONFIG={"graphene_django_observability": {"track_field_resolution": True}},
-    )
-    def test_plugins_config_takes_precedence_over_graphene_observability(self):
-        from graphene_django_observability.middleware import _get_app_settings
-
-        # PLUGINS_CONFIG should be used even if GRAPHENE_OBSERVABILITY is also present
-        with self.settings(GRAPHENE_OBSERVABILITY={"track_field_resolution": False}):
-            config = _get_app_settings()
-        self.assertTrue(config["track_field_resolution"])

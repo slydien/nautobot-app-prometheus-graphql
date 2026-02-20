@@ -1,10 +1,10 @@
 """Views for graphene_django_observability."""
 
-from django.http import HttpResponse
+from django.http import HttpRequest, HttpResponse
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
 
-def metrics_view(request):
+def metrics_view(request: HttpRequest) -> HttpResponse:
     """Expose Prometheus metrics in the standard text exposition format.
 
     Returns:

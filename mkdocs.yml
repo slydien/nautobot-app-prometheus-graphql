@@ -97,6 +97,7 @@ nav:
       - Overview: "user/app_overview.md"
       - Getting Started: "user/app_getting_started.md"
       - Use Cases: "user/app_use_cases.md"
+      - External Integrations: "user/external_interactions.md"
       - FAQ: "user/faq.md"
   - Administrator Guide:
       - Install & Configure: "admin/install.md"
@@ -110,6 +111,7 @@ nav:
       - Extending: "dev/extending.md"
       - Contributing: "dev/contributing.md"
       - Development Environment: "dev/dev_environment.md"
+      - Release Checklist: "dev/release_checklist.md"
       - Architecture Decisions: "dev/arch_decision.md"
       - Code Reference:
           - "dev/code_reference/index.md"

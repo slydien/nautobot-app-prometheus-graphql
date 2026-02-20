@@ -110,5 +110,5 @@ Full documentation is available in the [`docs`](https://github.com/slydien/nauto
 
 ## Questions & Contributing
 
-For questions, check the [FAQ](docs/user/faq.md) or open an [issue](https://github.com/slydien/nautobot-app-graphql-observability/issues).
-Contributions are very welcome — see the [contributing guide](docs/dev/contributing.md).
+For questions, check the [FAQ](user/faq.md) or open an [issue](https://github.com/slydien/nautobot-app-graphql-observability/issues).
+Contributions are very welcome — see the [contributing guide](dev/contributing.md).

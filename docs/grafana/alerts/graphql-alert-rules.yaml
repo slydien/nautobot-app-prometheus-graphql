@@ -1,0 +1,74 @@
+---
+# Example Prometheus alert rules for graphene-django-observability metrics.
+# Import these into your Prometheus or Grafana alerting configuration.
+
+groups:
+  - name: graphql_observability
+    rules:
+      - alert: GraphQLHighErrorRate
+        expr: >
+          sum(rate(graphql_errors_total[5m]))
+          /
+          sum(rate(graphql_requests_total[5m]))
+          > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "GraphQL error rate exceeds 5%"
+          description: >
+            The GraphQL error rate is {{ $value | humanizePercentage }} over the last 5 minutes.
+
+      - alert: GraphQLCriticalErrorRate
+        expr: >
+          sum(rate(graphql_errors_total[5m]))
+          /
+          sum(rate(graphql_requests_total[5m]))
+          > 0.20
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "GraphQL error rate exceeds 20%"
+          description: >
+            The GraphQL error rate is {{ $value | humanizePercentage }} over the last 5 minutes.
+
+      - alert: GraphQLHighP95Latency
+        expr: >
+          histogram_quantile(0.95, sum(rate(graphql_request_duration_seconds_bucket[5m]))
+          by (le, operation_name))
+          > 2
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "GraphQL p95 latency exceeds 2s for {{ $labels.operation_name }}"
+          description: >
+            The 95th percentile latency for operation {{ $labels.operation_name }}
+            is {{ $value | humanizeDuration }}.
+
+      - alert: GraphQLHighQueryDepth
+        expr: >
+          histogram_quantile(0.99, sum(rate(graphql_query_depth_bucket[5m])) by (le))
+          > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "GraphQL query depth p99 exceeds 10"
+          description: >
+            Queries are reaching a depth of {{ $value }} at the 99th percentile.
+            Consider enforcing a query depth limit.
+
+      - alert: GraphQLHighQueryComplexity
+        expr: >
+          histogram_quantile(0.99, sum(rate(graphql_query_complexity_bucket[5m])) by (le))
+          > 200
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "GraphQL query complexity p99 exceeds 200 fields"
+          description: >
+            Queries are requesting {{ $value }} fields at the 99th percentile.
+            Consider enforcing a complexity limit.
